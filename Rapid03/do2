@@ -1,0 +1,20 @@
+
+
+
+
+Next — Check BIOS recognition of the internal drives
+Let's make one read-only check from your current Ubuntu USB terminal.
+
+Run:
+sudo lshw -class disk -class storage -short
+
+
+This shows how Linux identifies the SATA controllers and attached disks.
+
+Then run:
+sudo dmesg | grep -Ei 'ata[0-9]|sata|ahci|raid' | tail -30
+
+
+This checks for storage-controller initialization messages and possible disk errors.
+
+Neither command modifies your drives.
