@@ -1,0 +1,10 @@
+
+
+
+Step 1 — Check the external HDD
+Open the terminal using Ctrl + Alt + T and run:
+lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT
+
+
+Then run:
+df -h
