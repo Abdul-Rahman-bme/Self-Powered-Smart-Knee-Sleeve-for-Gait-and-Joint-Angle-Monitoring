@@ -1,0 +1,14 @@
+
+
+
+Next — Check the BIOS drive order using GRUB
+Before making changes, run this one read-only command from the live Ubuntu Terminal:
+sudo grub-probe --target=device /mnt/ubuntu/boot/grub
+
+
+If /mnt/ubuntu is not currently mounted, first run:
+sudo mkdir -p /mnt/ubuntu
+sudo mount -o ro /dev/sda1 /mnt/ubuntu
+
+
+This helps confirm how GRUB identifies the installed filesystem, but it cannot prove that the BIOS recognizes the hard drive.
