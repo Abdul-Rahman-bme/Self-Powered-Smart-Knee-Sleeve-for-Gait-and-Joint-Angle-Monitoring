@@ -1,0 +1,32 @@
+Step 1 — Verify the physical disk and installed Ubuntu
+You're already in the Ubuntu 16.04 live USB Terminal.
+
+Run these three commands, one after another:
+ls -l /dev/disk/by-id/ | grep S1D5F6HW
+
+
+This should show that the authorized Seagate drive is still /dev/sda.
+sudo mkdir -p /mnt/ubuntu
+
+
+This creates a temporary folder in the live environment.
+sudo mount -o ro /dev/sda1 /mnt/ubuntu
+
+
+This mounts the installed Ubuntu partition read-only, without modifying it.
+Step 2 — Check whether Ubuntu and GRUB files exist
+Run:
+ls /mnt/ubuntu
+
+
+You should see directories such as boot, etc, home, usr, and var.
+
+Then:
+ls /mnt/ubuntu/boot/grub
+
+
+If you see grub.cfg, i386-pc, and other files, GRUB's configuration files are present.
+
+Important: Their presence does not prove GRUB's boot code is correctly installed in the disk's MBR.
+Step 3 — What we'll do next
+If the files are present and the drive identity is correct, we'll investigate the bootloader and BIOS disk detection.
