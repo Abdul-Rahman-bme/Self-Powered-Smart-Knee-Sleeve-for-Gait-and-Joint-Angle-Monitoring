@@ -1,0 +1,67 @@
+....
+
+
+  I am a research intern working under Professor Sebastian Magierowski at the Electronic Machine Intelligence Lab (EMIL), York University.
+
+I am currently using Amin's workstation to prepare a bootable Ubuntu 24.04 LTS USB for another laboratory workstation that I need to catalogue and potentially configure as a Windows 7 and Ubuntu dual-boot computer.
+
+**Current situation:**
+- I have a USB flash drive containing an old Ubuntu 16 installer.
+- I want to overwrite this USB with the Ubuntu 24.04 LTS Desktop installer.
+- The exact ISO file I need is `ubuntu-24.04.5.1-desktop-amd64.iso` (5.8 GB).
+- Download URL: https://releases.ubuntu.com/24.04/ubuntu-24.04.5.1-desktop-amd64.iso
+- I am using Amin's workstation only to download the ISO and create the bootable USB. Do not modify its internal disks, partitions, operating systems or boot configuration.
+
+**Target workstation specifications:**
+- Motherboard: ASUS X99-A
+- BIOS version: 3301
+- CPU: Intel Xeon E5-2620 v3 @ 2.40 GHz
+- CPU cores/threads: 6/12
+- AVX2: Supported
+- RAM: 32 GB DDR4, 2 × 16 GB SK Hynix
+- RAM operating speed: 1867 MHz
+- SATA Port 1: Seagate ST1000NM0033-9ZM173, 1 TB
+- SATA Port 2: Seagate ST1000NM0033, abnormally reported as 4.1 GB in BIOS
+- Optical drive: HL-DT-ST DVDRAM GH24NSC0
+- GPU: Unknown
+- Firmware: ASUS UEFI BIOS
+- Existing operating system: Windows 7 Professional
+- Two existing Windows user accounts are locked.
+- Whether Ubuntu already exists on any partition is unknown.
+- BIOS setup key: Delete/F2
+- Boot menu key: F8
+
+**Guide me through the following tasks, one step at a time:**
+
+1. Identify the operating system currently running on Amin's workstation.
+2. Download the correct Ubuntu ISO.
+3. Verify the downloaded ISO using its SHA256 checksum.
+4. Identify my USB flash drive by its capacity, model and device identifier.
+5. Create a bootable Ubuntu USB using an appropriate tool such as Startup Disk Creator, GNOME Disks or Rufus, depending on the operating system.
+6. Ensure that only the removable USB is overwritten.
+7. Safely eject the USB.
+8. Move the USB to the target ASUS X99-A workstation.
+9. Press F8 to enter the boot menu and select the USB.
+10. Boot into the Try Ubuntu live environment without installing Ubuntu.
+11. Collect detailed hardware specifications, including CPU, RAM, GPU, motherboard, networking, storage and CPU instruction-set support.
+12. Inspect existing disks, partition tables, filesystem types, unallocated space and operating systems without modifying them.
+13. Investigate why the second Seagate 1 TB drive is reporting only 4.1 GB.
+14. Determine whether Windows 7 uses Legacy BIOS or UEFI boot.
+15. Catalogue the existing hardware, operating systems, storage layout and authorized research data/software information for the laboratory inventory spreadsheet.
+16. Recommend a safe Ubuntu and Windows 7 dual-boot partitioning strategy after the existing disk layout and disk health are understood.
+17. Proceed with installation only after the professor, data owners and IT approve it and required backups have been verified.
+18. Verify that both Windows 7 and Ubuntu boot correctly after installation.
+
+**Important constraints:**
+- Preserve the existing Windows 7 installation.
+- Preserve existing research data.
+- Do not bypass locked user accounts.
+- Do not format any internal disk or partition without explicit approval.
+- Do not assume that the absence of Ubuntu in BIOS means there is no Ubuntu partition.
+- Do not use the abnormal second hard drive for installation until its condition has been investigated.
+- Do not prematurely configure this workstation specifically for Oxford Nanopore software.
+- Clearly distinguish verified observations from assumptions.
+- Give me commands that I can copy directly into the terminal.
+- Guide me interactively, waiting for my terminal outputs or screenshots before proceeding to the next critical step.
+
+Start by helping me download the ISO and create the bootable USB on Amin's workstation.
