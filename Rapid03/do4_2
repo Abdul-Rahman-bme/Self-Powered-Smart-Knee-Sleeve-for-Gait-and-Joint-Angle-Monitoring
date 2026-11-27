@@ -1,3 +1,8 @@
+
+
+
+
+
 OUT="$HOME/$(hostname)_admin_Workstation_Inventory_$(date +%Y-%m-%d).txt"
 
 sudo bash <<'EOF' 2>&1 | tee -a "$OUT"
