@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 OUT="$HOME/$(hostname)_Workstation_Inventory_$(date +%Y-%m-%d).txt"
 
 bash <<'EOF' 2>&1 | tee "$OUT"
