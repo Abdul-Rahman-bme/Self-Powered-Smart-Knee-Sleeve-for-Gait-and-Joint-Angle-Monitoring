@@ -1,0 +1,77 @@
+OUT="$HOME/$(hostname)_admin_Workstation_Inventory_$(date +%Y-%m-%d).txt"
+
+sudo bash <<'EOF' 2>&1 | tee -a "$OUT"
+
+echo
+echo "============================================================"
+echo "24. DETAILED HARDWARE INFORMATION"
+echo "============================================================"
+
+if command -v dmidecode >/dev/null; then
+    dmidecode -t system
+    dmidecode -t baseboard
+    dmidecode -t bios
+    dmidecode -t memory
+else
+    echo "dmidecode unavailable"
+fi
+
+echo
+echo "============================================================"
+echo "25. PHYSICAL DISK PARTITION TABLES"
+echo "============================================================"
+
+while read -r disk; do
+    fdisk -l "$disk"
+done < <(lsblk -dnpo NAME,TYPE | awk '$2=="disk"{print $1}')
+
+echo
+echo "============================================================"
+echo "26. UEFI BOOT ENTRIES"
+echo "============================================================"
+
+if command -v efibootmgr >/dev/null; then
+    efibootmgr -v
+fi
+
+echo
+echo "============================================================"
+echo "27. EXISTING GRUB OPERATING SYSTEM ENTRIES"
+echo "============================================================"
+
+if [ -f /boot/grub/grub.cfg ]; then
+    grep -E '^[[:space:]]*(menuentry|submenu) ' \
+        /boot/grub/grub.cfg
+fi
+
+echo
+echo "============================================================"
+echo "28. STORAGE HEALTH - SMART"
+echo "============================================================"
+
+if command -v smartctl >/dev/null; then
+
+    while read -r disk; do
+        echo
+        echo "----- $disk -----"
+        smartctl -a -n standby "$disk"
+    done < <(
+        lsblk -dnpo NAME,TYPE,TRAN |
+        awk '$2=="disk" && ($3=="sata" || $3=="nvme"){print $1}'
+    )
+
+else
+    echo "smartmontools not installed."
+    echo "Disk health not assessed."
+fi
+
+echo
+echo "============================================================"
+echo "29. DETAILED INVENTORY COMPLETED"
+echo "============================================================"
+
+EOF
+
+echo
+echo "Detailed information appended to:"
+echo "$OUT"
