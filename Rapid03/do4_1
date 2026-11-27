@@ -1,0 +1,213 @@
+OUT="$HOME/$(hostname)_Workstation_Inventory_$(date +%Y-%m-%d).txt"
+
+bash <<'EOF' 2>&1 | tee "$OUT"
+
+export LC_ALL=C
+
+section() {
+    echo
+    echo "============================================================"
+    echo "$1"
+    echo "============================================================"
+}
+
+available() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+section "1. SYSTEM IDENTITY"
+date
+hostname
+echo "Current user: $(whoami)"
+hostnamectl 2>/dev/null
+
+section "2. MANUFACTURER AND MOTHERBOARD"
+
+for field in sys_vendor product_name product_version \
+             board_vendor board_name board_version \
+             bios_vendor bios_version bios_date
+do
+    printf "%-20s: " "$field"
+    cat "/sys/class/dmi/id/$field" 2>/dev/null || echo "Unavailable"
+done
+
+section "3. OPERATING SYSTEM"
+cat /etc/os-release
+uname -r
+uname -m
+uptime
+
+section "4. CPU SPECIFICATIONS"
+lscpu
+
+section "5. CPU INSTRUCTION SET SUPPORT"
+
+FLAGS=$(grep -m1 '^flags' /proc/cpuinfo)
+
+for feature in sse sse2 sse4_1 sse4_2 avx avx2 \
+               avx512f avx512bw avx512vl fma aes vmx svm
+do
+    if echo "$FLAGS" | grep -qw "$feature"; then
+        printf "%-15s : Supported\n" "$feature"
+    else
+        printf "%-15s : Not detected\n" "$feature"
+    fi
+done
+
+section "6. MEMORY AND SWAP"
+free -h
+swapon --show 2>/dev/null
+
+section "7. GPU AND GRAPHICS DRIVERS"
+
+if available lspci; then
+    lspci -nnk | grep -EA4 'VGA|3D|Display'
+fi
+
+if available nvidia-smi; then
+    nvidia-smi --query-gpu=name,memory.total,driver_version \
+        --format=csv 2>/dev/null || echo "NVIDIA query failed"
+else
+    echo "nvidia-smi not available"
+fi
+
+if available glxinfo; then
+    glxinfo -B 2>/dev/null
+fi
+
+section "8. PHYSICAL STORAGE DEVICES"
+
+lsblk -d -e7 -o NAME,SIZE,MODEL,SERIAL,TRAN,ROTA
+
+echo
+echo "ROTA=1: Rotational drive"
+echo "ROTA=0: Non-rotational device"
+
+section "9. STORAGE PARTITIONS AND FILESYSTEMS"
+
+lsblk -e7 -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINT
+
+section "10. USED AND AVAILABLE DISK SPACE"
+
+df -hT -x tmpfs -x devtmpfs -x squashfs
+
+section "11. ROOT AND EFI PARTITIONS"
+
+findmnt /
+findmnt /boot/efi 2>/dev/null
+
+section "12. BOOT MODE AND EXISTING OS ENTRIES"
+
+if [ -d /sys/firmware/efi ]; then
+    echo "Boot mode: UEFI"
+else
+    echo "Boot mode: Legacy BIOS"
+fi
+
+if available efibootmgr; then
+    efibootmgr 2>/dev/null || echo "EFI entries unavailable"
+fi
+
+if [ -r /boot/grub/grub.cfg ]; then
+    grep -E '^[[:space:]]*(menuentry|submenu) ' \
+        /boot/grub/grub.cfg
+else
+    echo "GRUB configuration requires administrator access"
+fi
+
+section "13. NETWORK HARDWARE"
+
+if available lspci; then
+    lspci -nnk | grep -EA3 'Ethernet|Network controller'
+fi
+
+ip -br link 2>/dev/null
+
+section "14. USB HARDWARE"
+
+if available lsusb; then
+    lsusb
+fi
+
+section "15. DEVELOPMENT AND ENGINEERING TOOLS"
+
+for tool in python python3 pip pip3 gcc g++ clang \
+            make cmake ninja git gdb java scala sbt \
+            mill rustc cargo node npm docker podman \
+            conda code matlab octave vivado vitis \
+            quartus_sh iverilog verilator gtkwave \
+            yosys ngspice nvcc \
+            riscv64-linux-gnu-gcc \
+            riscv64-unknown-elf-gcc \
+            dorado minknow guppy_basecaller \
+            minimap2 samtools
+do
+    printf "%-28s : " "$tool"
+    command -v "$tool" || true
+done
+
+section "16. COMMON SOFTWARE VERSIONS"
+
+for tool in python3 gcc g++ git cmake \
+            iverilog verilator yosys \
+            docker nvcc minimap2 samtools
+do
+    if available "$tool"; then
+        echo
+        echo "--- $tool ---"
+        timeout 5 "$tool" --version 2>&1 | head -n 3
+    fi
+done
+
+section "17. SYSTEM-WIDE SOFTWARE DIRECTORIES"
+
+ls -l /opt /usr/local 2>/dev/null
+
+section "18. INSTALLED ENGINEERING PACKAGES"
+
+if available dpkg-query; then
+    dpkg-query -W -f='${Package}\t${Version}\n' 2>/dev/null |
+    grep -Ei 'vivado|xilinx|quartus|altera|matlab|octave|python3-pip|conda|cuda|nvidia|riscv|verilog|iverilog|verilator|gtkwave|yosys|cmake|^gcc|^g\+\+|docker|podman|minknow|dorado|guppy|nanopore|samtools|minimap|openblas|hdf5|fftw|teamviewer|appgate|openssh'
+fi
+
+section "19. SNAP APPLICATIONS"
+
+if available snap; then
+    snap list
+fi
+
+section "20. FLATPAK APPLICATIONS"
+
+if available flatpak; then
+    flatpak list
+fi
+
+section "21. SYSTEM TEMPERATURES"
+
+if available sensors; then
+    sensors
+else
+    echo "Temperature utility not installed"
+fi
+
+section "22. SECURITY AND REMOTE ACCESS SERVICES"
+
+if available systemctl; then
+    for service in ssh sshd teamviewerd apparmor ufw
+    do
+        printf "%-20s : " "$service"
+        systemctl is-active "$service" 2>/dev/null || true
+    done
+fi
+
+section "23. INVENTORY COMPLETED"
+
+echo "Hostname: $(hostname)"
+echo "Date: $(date)"
+echo "No software installed or configuration changed."
+
+EOF
+
+echo
+echo "Inventory saved successfully:"
+echo "$OUT"
