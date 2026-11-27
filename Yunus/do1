@@ -1,0 +1,98 @@
+ & {
+    Write-Output "========================================"
+    Write-Output "EMIL WORKSTATION INVENTORY"
+    Write-Output "Date: $(Get-Date)"
+    Write-Output "========================================"
+
+    Write-Output "`n===== HOSTNAME ====="
+    hostname
+
+    Write-Output "`n===== COMPUTER SYSTEM ====="
+    Get-CimInstance Win32_ComputerSystem |
+        Format-List Manufacturer, Model, SystemType, TotalPhysicalMemory, NumberOfProcessors, NumberOfLogicalProcessors
+
+    Write-Output "`n===== SYSTEM IDENTIFICATION ====="
+    Get-CimInstance Win32_ComputerSystemProduct |
+        Format-List Vendor, Name, IdentifyingNumber, UUID
+
+    Write-Output "`n===== MOTHERBOARD ====="
+    Get-CimInstance Win32_BaseBoard |
+        Format-List Manufacturer, Product, Version, SerialNumber
+
+    Write-Output "`n===== BIOS ====="
+    Get-CimInstance Win32_BIOS |
+        Format-List Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber
+
+    Write-Output "`n===== BOOT MODE ====="
+    Get-ComputerInfo -Property BiosFirmwareType
+
+    Write-Output "`n===== PROCESSOR ====="
+    Get-CimInstance Win32_Processor |
+        Format-List Name, Manufacturer, Architecture, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, L2CacheSize, L3CacheSize
+
+    Write-Output "`n===== RAM MODULES ====="
+    Get-CimInstance Win32_PhysicalMemory |
+        Format-Table BankLabel, Manufacturer, PartNumber, @{N="Capacity_GiB";E={[math]::Round($_.Capacity/1GB,2)}}, Speed, ConfiguredClockSpeed -AutoSize
+
+    Write-Output "`n===== MEMORY SLOTS ====="
+    Get-CimInstance Win32_PhysicalMemoryArray |
+        Format-List MemoryDevices, MaxCapacity
+
+    Write-Output "`n===== GRAPHICS CARDS ====="
+    Get-CimInstance Win32_VideoController |
+        Format-List Name, AdapterRAM, DriverVersion, VideoProcessor, CurrentHorizontalResolution, CurrentVerticalResolution
+
+    Write-Output "`n===== PHYSICAL STORAGE DRIVES ====="
+    Get-PhysicalDisk |
+        Format-Table FriendlyName, SerialNumber, MediaType, BusType, @{N="Size_GiB";E={[math]::Round($_.Size/1GB,2)}}, HealthStatus, OperationalStatus -AutoSize
+
+    Write-Output "`n===== DISK DETAILS ====="
+    Get-Disk |
+        Format-Table Number, FriendlyName, SerialNumber, PartitionStyle, @{N="Size_GiB";E={[math]::Round($_.Size/1GB,2)}}, IsBoot, IsSystem -AutoSize
+
+    Write-Output "`n===== DISK PARTITIONS ====="
+    Get-Partition |
+        Format-Table DiskNumber, PartitionNumber, DriveLetter, Type, GptType, @{N="Size_GiB";E={[math]::Round($_.Size/1GB,2)}} -AutoSize
+
+    Write-Output "`n===== STORAGE VOLUMES ====="
+    Get-Volume |
+        Format-Table DriveLetter, FileSystemLabel, FileSystem, HealthStatus, @{N="Size_GiB";E={[math]::Round($_.Size/1GB,2)}}, @{N="Free_GiB";E={[math]::Round($_.SizeRemaining/1GB,2)}} -AutoSize
+
+    Write-Output "`n===== OPERATING SYSTEM ====="
+    Get-CimInstance Win32_OperatingSystem |
+        Format-List Caption, Version, BuildNumber, OSArchitecture, InstallDate, LastBootUpTime
+
+    Write-Output "`n===== BOOT CONFIGURATION ====="
+    bcdedit /enum all
+
+    Write-Output "`n===== NETWORK ADAPTERS ====="
+    Get-NetAdapter |
+        Format-Table Name, InterfaceDescription, Status, MacAddress, LinkSpeed -AutoSize
+
+    Write-Output "`n===== NETWORK CONFIGURATION ====="
+    ipconfig /all
+
+    Write-Output "`n===== LOCAL USER ACCOUNTS ====="
+    Get-LocalUser |
+        Format-Table Name, Enabled, LastLogon -AutoSize
+
+    Write-Output "`n===== LOCAL ADMINISTRATORS ====="
+    Get-LocalGroupMember -Group "Administrators"
+
+    Write-Output "`n===== INSTALLED SOFTWARE ====="
+    Get-ItemProperty `
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*", `
+        "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" `
+        -ErrorAction SilentlyContinue |
+        Where-Object {$_.DisplayName} |
+        Sort-Object DisplayName |
+        Select-Object DisplayName, DisplayVersion, Publisher |
+        Format-Table -AutoSize
+
+    Write-Output "`n===== TEAMVIEWER SERVICE ====="
+    Get-Service *TeamViewer* -ErrorAction SilentlyContinue |
+        Format-Table Name, Status, StartType -AutoSize
+
+    Write-Output "`n===== END OF INVENTORY ====="
+
+} | Out-String -Width 250 | Tee-Object -FilePath "$([Environment]::GetFolderPath('Desktop'))\EMIL_$(hostname)_Inventory.txt"
